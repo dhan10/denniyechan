@@ -19,7 +19,7 @@ int theirmap[size_x][size_y];
 
 int order = 0;
 int exits = 0;
-
+int swtch = 0;
 int guesses = 0;
 int hits = 0;
 int sunksize = 0;
@@ -170,9 +170,9 @@ void message(int code)
         if (code == 0) {
 		printf("FIRE %c %d\n", Point.x+65, Point.y + 1);
 		fflush(stdout);
-	} else if (code == 1) {
-	        puts("HIT");	
-	} else if (code == 2) {
+	} else if (code == 1 && swtch == 0) {
+	        puts("HIT");
+	} else if (code == 2 && swtch == 0) {
 		puts("MISS");
 	} else if (code == 3) {
 		printf("SUNK %d\n", sunksize);  //needs size
@@ -223,7 +223,7 @@ int search(int map[size_x][size_y], struct p coord) {
 }
 
 /* function to make guesses. Returns coordinates */
-int gen_guess(int map[size_x][size_y])
+int gen_guess(void)
 {
 	if (guesses == 0) {
 		Point.x = 0;
@@ -248,10 +248,6 @@ int gen_guess(int map[size_x][size_y])
 			}
 		}
 	}
-	if (search(map, Point) == 0) {
-       	} else {
-       		// choose another coordinate;
-        }
 	guesses++;
 	return 0;
 }
@@ -283,7 +279,9 @@ void update_ourfleet(int x, int y, struct fleetinfo ally) {
 		} else if (sunksize == 2) {
 			ally.Dtot--;
 		}
+		swtch = 1;
 		message(3);
+		swtch = 0;
 	}
 }
 
@@ -352,7 +350,7 @@ int main(int argc, char *argv[])
 		order = 2;
 	}
 	if (order == 1) {
-       		int guessout = gen_guess(theirmap);
+       		int guessout = gen_guess();
        	        message(guessout);
 		//order = 2; //just switches which client stops
 	}
@@ -361,14 +359,20 @@ int main(int argc, char *argv[])
        	char x;
        	int y;
        	int z;
+	int sunk;
 	int code1 = 0;
 	int code2 = 0;
 	while (guesses < 100) {
 	if (order == 1) {
-		assert(scanf("%s %s %c %d", str1,str2, &x, &y) != 0);
-		//printf("scoping out %d %d",x,y);
+//		assert(scanf("%s %s %c %d", str1,str2, &x, &y) != 0);
+		assert(scanf("%s", str1) != 0);
+		if (strcmp(str1, "SUNK") == 0) {
+			assert(scanf("%d %s %c %d", &sunk, str2, &x, &y) != 0);
+		}
+		else {
+			assert(scanf("%s %c %d", str2, &x, &y) != 0);
+		}
 		code1 = decode(str1);
-		//printf("The first code is %d\n",code1);
 		y = y - 1;
 	} else if(order == 2) {
 		assert(scanf("%s %c %d", str1, &x, &y) != 0);
@@ -392,9 +396,14 @@ int main(int argc, char *argv[])
 		hits++;
 		update_theirmap();
 	}
+	if (code1 == 3) {
+		hits++;
+		update_theirmap();
+		update_theirfleet(sunk);
+	}
 	if (code1 == 0 || code2 == 0) {
 		update_ourmap(x, y);
-		//  	int guessout1 = gen_guess(theirmap);
+	  	int guessout1 = gen_guess();
 	       	message(0);
 	}	
 	if (guesses - hits > 70) {
