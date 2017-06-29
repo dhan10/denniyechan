@@ -239,7 +239,7 @@ int gen_guess(void)
 		/* } else { */
 		/* 	puts("Last point status not updated"); /\* this no hap *\/ */
 		/* } */
-		if (Point.y < 9) {
+		if (Point.y <= 9) {
 			if (Point.x < 9) {
 				Point.x++;
 			} else if (Point.x == 9) {
@@ -281,7 +281,6 @@ void update_ourfleet(int x, int y, struct fleetinfo ally) {
 		}
 		swtch = 1;
 		message(3);
-		swtch = 0;
 	}
 }
 
@@ -362,53 +361,60 @@ int main(int argc, char *argv[])
 	int sunk;
 	int code1 = 0;
 	int code2 = 0;
-	while (guesses < 100) {
-	if (order == 1) {
-//		assert(scanf("%s %s %c %d", str1,str2, &x, &y) != 0);
-		assert(scanf("%s", str1) != 0);
-		if (strcmp(str1, "SUNK") == 0) {
-			assert(scanf("%d %s %c %d", &sunk, str2, &x, &y) != 0);
+	while (guesses < 100) { //|| ourfleet.total != 0 || theirfleet.total != 0 ) {
+		if (order == 1) {
+	//		assert(scanf("%s %s %c %d", str1,str2, &x, &y) != 0);
+			assert(scanf("%s", str1) != 0);
+			if (strcmp(str1, "SUNK") == 0) {
+				assert(scanf("%d %s %c %d", &sunk, str2, &x, &y) != 0);
+			}
+			else {
+				assert(scanf("%s %c %d", str2, &x, &y) != 0);
+			}
+			code1 = decode(str1);
+			y = y - 1;
+		} else if(order == 2) {
+			assert(scanf("%s %c %d", str1, &x, &y) != 0);
+			code1 = decode(str1);
+			order = 1;
+			y = y - 1;
+		} else if (code1 == 1 || code1 == 2 ) {
+//			assert(scanf("%s %c %d", str2, &x, &y) != 0);
+			code2 = decode(str2);
+			y = y - 1;
+		} else if (code1 == 3) {
+//			assert(scanf("%d %s %c %d", &z, str2, &x, &y) != 0);
+			code2 = decode(str2);
+			y = y - 1;
+			update_theirmap();
+			update_theirfleet(sunk);
+			hits++;
+		} else if (code1 == 4 || code1 == 5) {
+			exits = 1;
 		}
-		else {
-			assert(scanf("%s %c %d", str2, &x, &y) != 0);
+		if (code1 == 1) {
+			hits++;
+			update_theirmap();
 		}
-		code1 = decode(str1);
-		y = y - 1;
-	} else if(order == 2) {
-		assert(scanf("%s %c %d", str1, &x, &y) != 0);
-		code1 = decode(str1);
-		order = 1;
-		y = y - 1;
-	} else if (code1 == 1 || code1 == 2 ) {
-		assert(scanf("%s %c %d", str2, &x, &y) != 0);
-		code2 = decode(str2);
-		y = y - 1;
-	} else if (code1 == 3) {
-		assert(scanf("%d %s %c %d", &z, str2, &x, &y) != 0);
-		code2 = decode(str2);
-		y = y - 1;
-		update_theirfleet(z);
-		hits++;
-	} else if (code1 == 4 || code1 == 5) {
-		exits = 1;
+		if (code1 == 0 || code2 == 0) {
+			swtch = 0;
+			update_ourmap(x, y);
+		  	int guessout1 = gen_guess();
+		       	message(0);
+		}	
+		if (guesses - hits > 70) {
+			message(5);
+		}	
 	}
-	if (code1 == 1) {
-		hits++;
-		update_theirmap();
-	}
-	if (code1 == 3) {
-		hits++;
-		update_theirmap();
-		update_theirfleet(sunk);
-	}
-	if (code1 == 0 || code2 == 0) {
-		update_ourmap(x, y);
-	  	int guessout1 = gen_guess();
-	       	message(0);
-	}	
-	if (guesses - hits > 70) {
+	printf("%d", ourfleet.total);
+	if(guesses >= 100) {
 		message(5);
+	}	
+	else if (ourfleet.total == 0) {
+	 	message(4);      
 	}
+	else if (theirfleet.total == 0) {
+		message(5);
 	}
 	return EXIT_SUCCESS;
 }
