@@ -373,6 +373,7 @@ int main(int argc, char *argv[])
 	} else if(order == 2) {
 		assert(scanf("%s %c %d", str1, &x, &y) != 0);
 		code1 = decode(str1);
+		order = 1;
 		y = y - 1;
 	} else if (code1 == 1 || code1 == 2 ) {
 		assert(scanf("%s %c %d", str2, &x, &y) != 0);
