@@ -35,7 +35,7 @@ struct shipinfo {
 	int health;
 };
 
-struct fleetinfo{
+struct fleetinfo {
        	struct shipinfo loc[10];
 	int total;
 	int Atot; /* aircraft carrier */
@@ -54,9 +54,9 @@ void start_maps(void)
 	/* initialize aircraft carrier */
         ourfleet.total = 10;
         ourfleet.Atot = 1;
-	ourfleet.Btot = 4;
+	ourfleet.Btot = 2;
 	ourfleet.Ctot = 3; 
-	ourfleet.Dtot = 2;
+	ourfleet.Dtot = 4;
 
 	for (int i = 0; i < 5; i++) {
 		ourmap[0][i] = 3;
@@ -129,6 +129,7 @@ void start_maps(void)
 	ourfleet.loc[7].x[1] = 5;
 	ourfleet.loc[7].y[1] = 5;
 	ourfleet.loc[7].health = Dsz;
+	ourfleet.loc[7].size = Dsz;
 
 	/* destroyer 3 */
 	ourmap[7][7]=3;
@@ -144,7 +145,7 @@ void start_maps(void)
 	ourmap[9][2]=3;
 	ourmap[9][3]=3;
 	ourfleet.loc[9].x[0] = 9;
-	ourfleet.loc[9].y[0] = 3;
+	ourfleet.loc[9].y[0] = 2;
 	ourfleet.loc[9].x[1] = 9;
 	ourfleet.loc[9].y[1] = 3;
 	ourfleet.loc[9].health = Dsz;
@@ -170,9 +171,9 @@ void message(int code)
         if (code == 0) {
 		printf("FIRE %c %d\n", Point.x+65, Point.y + 1);
 		fflush(stdout);
-	} else if (code == 1 && swtch == 0) {
+	} else if (code == 1) { //&& swtch == 0) {
 	        puts("HIT");
-	} else if (code == 2 && swtch == 0) {
+	} else if (code == 2) {// && swtch == 0) {
 		puts("MISS");
 	} else if (code == 3) {
 		printf("SUNK %d\n", sunksize);  //needs size
@@ -253,34 +254,35 @@ int gen_guess(void)
 }
 
 /* update ship stats. Return 1 on success, 0 on failure. */
-void update_ourfleet(int x, int y, struct fleetinfo ally) {
+void update_ourfleet(int x, int y) {
 	int shipno = 0;
-	for (int i = 0; i < ally.total; i++) {
+	for (int i = 0; i < 10; i++) {
 		for (int j = 0; j < 5; j++) {
-			if (ally.loc[i].x[j] == x && ally.loc[i].y[j] == y) {
-				ally.loc[i].health--;
+			if (ourfleet.loc[i].x[j] == x && ourfleet.loc[i].y[j] == y) {
+				ourfleet.loc[i].health--;
 			        shipno = i;
 			}
 		}
 	}
-	if (ally.loc[shipno].health == 0) {
-		ally.total--;
-		if (ally.total == 0) {
+	if (ourfleet.loc[shipno].health == 0) {
+		ourfleet.total--;
+		if (ourfleet.total == 0) {
 			message(4);
-			exits = 1;
 		}
-	        sunksize = ally.loc[shipno].size;
+	        sunksize = ourfleet.loc[shipno].size;
 		if (sunksize == 5) {
-			ally.Atot--;
+			ourfleet.Atot--;
 	        } else if (sunksize == 4) {
-			ally.Btot--;
+			ourfleet.Btot--;
 		} else if (sunksize == 3) {
-			ally.Ctot--;
+			ourfleet.Ctot--;
 		} else if (sunksize == 2) {
-			ally.Dtot--;
+			ourfleet.Dtot--;
 		}
-		swtch = 1;
+//		swtch = 1;
 		message(3);
+	} else {
+		message(1);
 	}
 }
 
@@ -299,8 +301,8 @@ void update_ourmap(char x, int y)
 		message(2);
 	} else if (search(ourmap, enemyattempt) == 3) {
 		ourmap[x - 65][y] = 1;
-		update_ourfleet(enemyattempt.x, enemyattempt.y,ourfleet);
-	        message(1);
+		update_ourfleet(enemyattempt.x, enemyattempt.y);
+//	        message(1);
 	}
 }
 
@@ -361,7 +363,7 @@ int main(int argc, char *argv[])
 	int sunk;
 	int code1 = 0;
 	int code2 = 0;
-	while (guesses < 100) { //|| ourfleet.total != 0 || theirfleet.total != 0 ) {
+	while ((guesses < 100)) {
 		if (order == 1) {
 	//		assert(scanf("%s %s %c %d", str1,str2, &x, &y) != 0);
 			assert(scanf("%s", str1) != 0);
@@ -397,7 +399,7 @@ int main(int argc, char *argv[])
 			update_theirmap();
 		}
 		if (code1 == 0 || code2 == 0) {
-			swtch = 0;
+//			swtch = 0;
 			update_ourmap(x, y);
 		  	int guessout1 = gen_guess();
 		       	message(0);
@@ -406,7 +408,19 @@ int main(int argc, char *argv[])
 			message(5);
 		}	
 	}
-	printf("%d", ourfleet.total);
+	printf("%d\n", ourfleet.total);
+
+	printf("%d\n", ourfleet.loc[0].health);
+	printf("%d\n", ourfleet.loc[1].health);
+	printf("%d\n", ourfleet.loc[2].health);
+	printf("%d\n", ourfleet.loc[3].health);
+	printf("%d\n", ourfleet.loc[4].health);
+	printf("%d\n", ourfleet.loc[5].health);
+	printf("%d\n", ourfleet.loc[6].health);
+	printf("%d\n", ourfleet.loc[7].health);
+	printf("%d\n", ourfleet.loc[8].health);
+	printf("%d\n", ourfleet.loc[9].health);
+
 	if(guesses >= 100) {
 		message(5);
 	}	
